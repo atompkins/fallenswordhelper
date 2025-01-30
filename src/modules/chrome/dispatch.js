@@ -17,6 +17,7 @@ import jqueryEventTracker from './jqueryEventTracker';
 import lookForHcsData from './lookForHcsData/lookForHcsData';
 import pageSwitcher from './pageSwitcher/pageSwitcher';
 import doQuickLinks from './quicklinks/doQuickLinks';
+import workerDemo from './workerDemo';
 
 jqueryEventTracker();
 
@@ -130,4 +131,5 @@ export default function dispatch(fshVer, gmInfo) {
   analytics();
   posthogInit();
   runCore(cssPrm);
+  workerDemo();
 }
