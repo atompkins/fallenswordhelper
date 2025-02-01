@@ -12,6 +12,7 @@ import calf from '../support/calf';
 import stdout from '../support/stdout';
 import task from '../support/task';
 import getUrlParameter from '../system/getUrlParameter';
+import ajaxEvents from './ajaxEvents';
 import isMessageSound from './isMessageSound';
 import jqueryEventTracker from './jqueryEventTracker';
 import lookForHcsData from './lookForHcsData/lookForHcsData';
@@ -19,6 +20,7 @@ import pageSwitcher from './pageSwitcher/pageSwitcher';
 import doQuickLinks from './quicklinks/doQuickLinks';
 
 jqueryEventTracker();
+ajaxEvents();
 
 let cmd = 0;
 let subcmd = 0;
