@@ -1,4 +1,5 @@
-import indexAjaxData from '../../ajax/indexAjaxData';
+import daArenaPickMove from '../../_dataAccess/daArenaPickMove';
+import sendEvent from '../../analytics/sendEvent';
 import all from '../../common/all';
 import getArrayByTagName from '../../common/getArrayByTagName';
 import jQueryNotPresent from '../../common/jQueryNotPresent';
@@ -14,12 +15,8 @@ let imgNodes = 0;
 let selectRow = 0;
 
 function doPickMove(moveId, slotId) {
-  return indexAjaxData({
-    cmd: 'arena',
-    subcmd: 'dopickmove',
-    move_id: moveId,
-    slot_id: slotId,
-  });
+  const newMoveId = moveId === 'x' ? 0 : Number(moveId) + 1;
+  return daArenaPickMove(newMoveId, slotId);
 }
 
 function value(el) {
@@ -61,6 +58,7 @@ async function changeMoves(newMoves) {
 
 async function updateMoves() {
   // jQuery
+  sendEvent('arena__setup', 'updateMoves');
   const newMoves = getAllMoves();
   const prm = newMoves.map(resetMove);
   await all(prm);
@@ -106,6 +104,7 @@ function getTable() {
 
 function selectMoves(evt) {
   // jQuery
+  sendEvent('arena__setup', 'setupMoves');
   $(evt.target).off();
   imgNodes = $('#pCC a[href*="=pickmove&"] img');
   const table = getTable();
