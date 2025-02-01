@@ -17,8 +17,10 @@ import jqueryEventTracker from './jqueryEventTracker';
 import lookForHcsData from './lookForHcsData/lookForHcsData';
 import pageSwitcher from './pageSwitcher/pageSwitcher';
 import doQuickLinks from './quicklinks/doQuickLinks';
+import xhr from './xhr';
 
 jqueryEventTracker();
+xhr();
 
 let cmd = 0;
 let subcmd = 0;
