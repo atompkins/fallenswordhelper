@@ -1,7 +1,8 @@
 <script>
-  export let visible = true;
+  let { children, close, visible } = $props();
 
   let atBottom;
+  let bgDiv;
   let docScrollY;
   let docTop;
 
@@ -23,18 +24,22 @@
     }
   }
 
-  $: {
+  function bgClick(e) {
+    if (e.target !== bgDiv) return;
+    close();
+  }
+
+  $effect(() => {
     if (visible) {
       disableScroll();
     } else {
       enableScroll();
     }
-  }
+  });
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-<div class:visible on:click|self>
-  <slot />
+<div bind:this={bgDiv} class:visible onclick={bgClick}>
+  {@render children?.()}
 </div>
 
 <style>

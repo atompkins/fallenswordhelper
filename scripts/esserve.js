@@ -39,8 +39,12 @@ const ctx = await esbuild.context({
     sveltePlugin({
       compilerOptions: { compatibility: { componentApi: 4 } },
       filterWarnings: (warning) =>
-        warning.code !== 'a11y_consider_explicit_label' &&
-        warning.code !== 'reactive_declaration_module_script_dependency' &&
+        ![
+          'a11y_click_events_have_key_events',
+          'a11y_consider_explicit_label',
+          'a11y_no_static_element_interactions',
+          'reactive_declaration_module_script_dependency',
+        ].includes(warning.code) &&
         warning.filename !== 'node_modules/svelte-table/src/SvelteTable.svelte',
     }),
   ],

@@ -1,14 +1,9 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
   import calf from '../support/calf';
   import ModalBackground from './ModalBackground.svelte';
   import ModalDialog from './ModalDialog.svelte';
 
-  export let modal;
-  export let visible = true;
-
-  const dispatch = createEventDispatcher();
-  const close = () => dispatch('close');
+  let { children, close, modal = $bindable(), visible = true } = $props();
 
   let oldDialogIsClosed;
 
@@ -25,17 +20,17 @@
     }
   }
 
-  $: {
+  $effect(() => {
     if (visible) {
       replaceDialogIsClosed();
     } else {
       restoreDialogIsClosed();
     }
-  }
+  });
 </script>
 
-<ModalBackground {visible} on:click={close}>
-  <ModalDialog {visible} on:close bind:modal>
-    <slot />
+<ModalBackground {close} {visible}>
+  <ModalDialog bind:modal {close} {visible}>
+    {@render children?.()}
   </ModalDialog>
 </ModalBackground>

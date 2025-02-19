@@ -1,8 +1,9 @@
 <script>
-  import VirtualList from 'svelte-virtual-list-ce';
+  // import VirtualList from 'svelte-virtual-list-ce';
   import daGuildLog from '../../_dataAccess/daGuildLog';
   import sendEvent from '../../analytics/sendEvent';
   import navigateTo from '../../common/navigateTo';
+  import VirtualList from '../../common/VirtualList.svelte';
   import ModalTitled from '../../modal/ModalTitled.svelte';
   import { guildLogUrl } from '../../support/constants';
   import { subscribeOnce } from '../../support/pubsub';
@@ -12,20 +13,34 @@
   import LogItem from './LogItem.svelte';
   import profiler from './profiler';
 
-  export let visible = true;
+  let { visible = $bindable(true) } = $props();
 
-  let checks = Array(11).fill(true);
+  let checks = $state(Array(11).fill(true));
   let chunkNo = 0;
-  let displayLog = [];
   let enableLogColoring = null;
-  let groupCombatItems = null;
-  let hideNonPlayerGuildLogMessages = null;
+  let groupCombatItems = $state(null);
+  let hideNonPlayerGuildLogMessages = $state(null);
   let lastCheckUtc = null;
-  let liveLog = [];
-  let prm = null;
-  let progressLog = [];
+  let liveLog = $state([]);
+  let prm = $state(null);
+  let progressLog = $state([]);
   let nowUtc = null;
-  let searchValue = '';
+  let searchValue = $state('');
+
+  let intermediateLog = $derived(
+    liveLog
+      .filter(({ fshType }) => checks[fshType])
+      .filter(
+        ({ searchable }) =>
+          searchValue === '' || searchable.includes(searchValue.toLowerCase()),
+      )
+      .map(addIndex),
+  );
+  let newDisplayLog = $derived(
+    intermediateLog.length
+      ? intermediateLog
+      : [{ index: 0, msg: { text: '' } }],
+  );
 
   function logEvent(type) {
     sendEvent('Guild Log', type);
@@ -54,30 +69,16 @@
   });
   const reverse = (a, b) => b.time - a.time;
 
-  function updateDisplayLog() {
-    displayLog = liveLog
-      .filter(({ fshType }) => checks[fshType])
-      .filter(
-        ({ searchable }) =>
-          searchValue === '' || searchable.includes(searchValue.toLowerCase()),
-      )
-      .map(addIndex);
-    if (!displayLog.length) displayLog = [{ index: 0, msg: { text: '' } }];
-  }
-
   function cbChange() {
     logEvent('cbChange');
-    updateDisplayLog();
   }
 
   function selectAll() {
     logEvent('selectAll');
-    updateDisplayLog();
   }
 
   function selectNone() {
     logEvent('selectNone');
-    updateDisplayLog();
   }
 
   function oldGuildLog() {
@@ -93,7 +94,6 @@
   function initVars() {
     progressLog = ['Loading...'];
     liveLog = [];
-    displayLog = [];
     nowUtc = new Date().setUTCSeconds(0, 0) / 1000;
     lastCheckUtc = getValue('lastModalGuildLogCheck') ?? nowUtc;
     setValue('lastModalGuildLogCheck', nowUtc);
@@ -130,32 +130,37 @@
     const builtLogs = await daGuildLog();
     if (!builtLogs) return;
     liveLog = builtLogs.toSorted(reverse).map(decorate);
-    updateDisplayLog();
   }
 
   function refresh() {
     prm = init();
   }
 
-  $: if (visible) {
-    refresh();
-  }
+  $effect(() => {
+    if (visible) {
+      refresh();
+    }
+  });
 
-  $: updateDisplayLog(searchValue);
+  (() => {
+    console.log('newDisplayLog', newDisplayLog);
+  })();
 </script>
 
-<ModalTitled {visible} on:close={close}>
-  <svelte:fragment slot="title">Guild Log</svelte:fragment>
+<ModalTitled {visible} {close}>
+  {#snippet title()}
+    Guild Log
+  {/snippet}
   <div class="content">
     <FilterHeader
       bind:checks
       bind:searchValue
-      on:cbChange={cbChange}
-      on:clearSearch={clearSearch}
-      on:oldGuildLog={oldGuildLog}
-      on:refresh={refresh}
-      on:selectAll={selectAll}
-      on:selectNone={selectNone}
+      {cbChange}
+      {clearSearch}
+      {oldGuildLog}
+      {refresh}
+      {selectAll}
+      {selectNone}
     />
     <div class="row-container">
       <div class="innerColumnHeader">&nbsp;</div>
@@ -176,12 +181,14 @@
       {/each}
     {:then}
       <div class="vs">
-        <VirtualList items={displayLog} let:item={logEntry}>
-          <LogItem
-            {groupCombatItems}
-            {hideNonPlayerGuildLogMessages}
-            {logEntry}
-          />
+        <VirtualList items={newDisplayLog}>
+          {#snippet children({ item: logEntry })}
+            <LogItem
+              {groupCombatItems}
+              {hideNonPlayerGuildLogMessages}
+              {logEntry}
+            />
+          {/snippet}
         </VirtualList>
       </div>
     {:catch error}

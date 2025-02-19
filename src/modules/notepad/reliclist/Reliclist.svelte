@@ -9,11 +9,12 @@
   import { defSubcmd, guideUrl, guildViewUrl } from '../../support/constants';
   import padZ from '../../system/padZ';
 
-  export let visible = true;
-  let listOfRelics = [];
-  let log = [];
+  let { visible = $bindable() } = $props();
+  let listOfRelics = $state([]);
+  let log = $state([]);
   let sortDirection = -1;
   let lastSort = '';
+  let prm = $state(Promise.resolve());
 
   function relicEvent(type) {
     sendEvent('Relic List', type);
@@ -81,11 +82,17 @@
     const [day, hour, min, sec] = splitTime(time);
     return `${day}d ${padZ(hour)}h ${padZ(min)}m ${padZ(sec)}s`;
   }
+
+  (() => {
+    prm = init();
+  })();
 </script>
 
-<ModalTitled {visible} on:close={close}>
-  <svelte:fragment slot="title">Relic List</svelte:fragment>
-  {#await init()}
+<ModalTitled {visible} {close}>
+  {#snippet title()}
+    Relic List
+  {/snippet}
+  {#await prm}
     <div class="content">
       {#each log as txt, index (index)}
         {txt}
@@ -189,7 +196,7 @@
         <div>
           <a
             href="{guideUrl}relics{defSubcmd}view&relic_id={relic.id}"
-            on:click={() => relicEvent('view relic on UFSG')}
+            onclick={() => relicEvent('view relic on UFSG')}
           >
             {relic.name}
           </a>
@@ -198,7 +205,7 @@
           {#if relic.guild}
             <a
               href="{guildViewUrl}{relic.guild.id}"
-              on:click={() => relicEvent('view guild')}
+              onclick={() => relicEvent('view guild')}
             >
               {relic.guild.name}
             </a>

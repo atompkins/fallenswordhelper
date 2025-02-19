@@ -2,6 +2,7 @@ import globals from 'globals';
 import pluginJs from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import eslintPluginSvelte from 'eslint-plugin-svelte';
+import svelteParser from "svelte-eslint-parser";
 
 export default [
   {
@@ -25,9 +26,15 @@ export default [
     },
   },
   pluginJs.configs.recommended,
-  eslintConfigPrettier,
   ...eslintPluginSvelte.configs['flat/recommended'],
+  eslintConfigPrettier,
   ...eslintPluginSvelte.configs['flat/prettier'],
+  {
+    files: ["**/*.svelte", "*.svelte", "**/*.svelte.js", "*.svelte.js"],
+    languageOptions: {
+      parser: svelteParser,
+    },
+  },
   { ignores: ['dist/'] },
   {
     rules: {
